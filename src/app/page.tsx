@@ -8,9 +8,9 @@ export default function Home() {
       {/* Authentication buttons */}
       <div className="absolute top-6 right-6 flex gap-4">
         <SignedOut>
-          <SignInButton>
+          <SignInButton forceRedirectUrl="/dashboard">
             <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-lg font-medium hover:bg-green-700 transition duration-300 ease-in-out">
-              Log In
+              Sign In
             </button>
           </SignInButton>
           <SignUpButton>
