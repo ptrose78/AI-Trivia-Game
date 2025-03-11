@@ -1,12 +1,12 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useState } from "react";
+import { redirect } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function TriviaGame() {
   const { user } = useUser();  
   const name = user?.fullName || user?.emailAddresses[0].emailAddress || "Anonymous";
-  console.log(name);
   
   const [category, setCategory] = useState("Science");
   const [question, setQuestion] = useState("");
@@ -18,8 +18,22 @@ export default function TriviaGame() {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const totalQuestions = 3;
+  const [playedToday, setPlayedToday] = useState(false);
+  
+
+  const checkIfPlayedToday = async () => {
+    const res = await fetch("/api/checkPlay");
+    const data = await res.json();
+    setPlayedToday(data.playedToday);
+    console.log("Played Today:", data.playedToday);
+    return true;
+  };
 
   const fetchTrivia = async () => {
+    if (await checkIfPlayedToday()) {
+      console.log("You have already played today. Come back tomorrow!");
+      return;
+    }
 
     setLoading(true);
     setQuestion("");
@@ -34,9 +48,7 @@ export default function TriviaGame() {
       body: JSON.stringify({ category }),
     });
 
-    console.log("API Response:", res);
     const data = await res.json();
-    console.log("API Response:", data);
     setLoading(false);
 
     if (data.triviaQuestion) {
@@ -53,8 +65,6 @@ export default function TriviaGame() {
 
   const handleAnswer = (index: number) => {
     const convertedChoice = String.fromCharCode(65 + index);
-    console.log("Converted Choice:", convertedChoice);
-    console.log("Answer:", answer);
 
     if (convertedChoice === answer) {
       setFeedback("✅ Correct answer!");
@@ -80,14 +90,16 @@ export default function TriviaGame() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, score }),
     });
-    const data = await res.json();
-    console.log("Post Score Response:", data);
+    redirect("/leaderboard");
   };
 
   return (
     <div className="p-6 max-w-xl mx-auto">
       <h2 className="text-2xl font-bold mb-4">Trivia Game</h2>
-      
+      {playedToday ? (
+      <p>You have already played today. Come back tomorrow!</p>
+        ) : (
+        <>
       <label className="block mb-4">
         Choose Category:
         <select
@@ -126,8 +138,10 @@ export default function TriviaGame() {
 
       {gameOver && (
         <button onClick={postScore} className="mt-4 bg-green-500 text-white px-4 py-2 rounded">
-          Post Score
+          Check Leaderboard
         </button>
+      )}
+      </>
       )}
     </div>
   );

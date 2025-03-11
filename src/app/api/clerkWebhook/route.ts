@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/app/lib/supabaseClient";
+import { supabaseAdmin } from "@/app/lib/supabaseAdmin";
 import { v4 as uuidv4 } from "uuid";
 
 export const runtime = "nodejs"; 
