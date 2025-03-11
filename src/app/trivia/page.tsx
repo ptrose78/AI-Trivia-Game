@@ -1,19 +1,32 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 
 export default function TriviaGame() {
+  const { user } = useUser();  
+  const name = user?.fullName || user?.emailAddresses[0].emailAddress || "Anonymous";
+  console.log(name);
+  
   const [category, setCategory] = useState("Science");
   const [question, setQuestion] = useState("");
   const [choices, setChoices] = useState<string[]>([]);
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [questionCount, setQuestionCount] = useState(0);
+  const [score, setScore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const totalQuestions = 3;
 
   const fetchTrivia = async () => {
+
     setLoading(true);
     setQuestion("");
     setChoices([]);
     setAnswer("");
+    setFeedback("");
+    setGameOver(false);
 
     const res = await fetch("/api/getTrivia", {
       method: "POST",
@@ -21,15 +34,54 @@ export default function TriviaGame() {
       body: JSON.stringify({ category }),
     });
 
+    console.log("API Response:", res);
     const data = await res.json();
+    console.log("API Response:", data);
     setLoading(false);
 
     if (data.triviaQuestion) {
-      const trivia = JSON.parse(data.triviaQuestion); // Parse JSON response
+      console.log("Trivia Question:", data.triviaQuestion);
+      const triviaText = data.triviaQuestion.trim(); 
+      const triviaJson = triviaText.replace(/^```json|```$/g, "").trim();
+      const trivia = JSON.parse(triviaJson);
       setQuestion(trivia.question);
       setChoices(trivia.choices);
       setAnswer(trivia.answer);
+      setQuestionCount((prev) => prev + 1);
     }
+  };
+
+  const handleAnswer = (index: number) => {
+    const convertedChoice = String.fromCharCode(65 + index);
+    console.log("Converted Choice:", convertedChoice);
+    console.log("Answer:", answer);
+
+    if (convertedChoice === answer) {
+      setFeedback("✅ Correct answer!");
+      setScore((prev) => prev + 1);
+    } else {
+      setFeedback("❌ Incorrect answer.");
+    }
+
+    setTimeout(() => {
+      if (questionCount < totalQuestions) {
+        fetchTrivia();
+      } else {
+        setFeedback(`🎉 Quiz Complete! Your Score: ${score}/${totalQuestions}`);
+        setGameOver(true);
+      }
+    }, 2000);
+  };
+
+  const postScore = async () => {
+    console.log("Posting score:", score);
+    const res = await fetch("/api/postScore", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, score }),
+    });
+    const data = await res.json();
+    console.log("Post Score Response:", data);
   };
 
   return (
@@ -55,7 +107,7 @@ export default function TriviaGame() {
         onClick={fetchTrivia}
         disabled={loading}
       >
-        {loading ? "Loading..." : "Get Question"}
+        {loading ? "Loading..." : questionCount === totalQuestions ? "Restart Quiz" : "Get Question"}
       </button>
 
       {question && (
@@ -63,12 +115,19 @@ export default function TriviaGame() {
           <p className="text-lg font-semibold">{question}</p>
           <ul className="mt-3">
             {choices.map((choice, index) => (
-              <li key={index} className="py-1">
-                {`${choice}`}
-              </li>
+              <button key={index} onClick={() => handleAnswer(index)} disabled={!!feedback}>
+                <li className="py-1">{`${choice}`}</li>
+              </button>
             ))}
           </ul>
+          {feedback && <p className="mt-3">{feedback}</p>}
         </div>
+      )}
+
+      {gameOver && (
+        <button onClick={postScore} className="mt-4 bg-green-500 text-white px-4 py-2 rounded">
+          Post Score
+        </button>
       )}
     </div>
   );
