@@ -35,19 +35,28 @@ const Navbar = () => {
             Leaderboard
           </Link>
 
-          {isSignedIn ? (
+         
             <div className="relative">
               {/* Profile Image Button */}
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center space-x-2 focus:outline-none"
               >
-                <img
-                  src={user?.imageUrl}
-                  alt="Profile"
-                  className="w-8 h-8 rounded-full border"
-                />
-                <span className="text-white">{user?.firstName}</span>
+                {/* Profile Image */}
+                {user ? (
+                  <img
+                    src={user.imageUrl}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full border"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse"></div>
+                )}
+
+                {/* Profile Name with Fixed Width */}
+                <span className="text-white w-[80px] inline-block text-left">
+                  {user?.firstName || <div className="w-full h-4 bg-gray-300 rounded animate-pulse"></div>}
+                </span>
               </button>
 
               {/* Profile Dropdown */}
@@ -65,14 +74,6 @@ const Navbar = () => {
                 </div>
               )}
             </div>
-          ) : (
-            <Link
-              href="/sign-in"
-              className="text-white hover:text-gray-200 transition duration-300"
-            >
-              Sign In
-            </Link>
-          )}
         </div>
 
         {/* Mobile Menu Button */}
