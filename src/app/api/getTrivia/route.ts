@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "system", content: "You are a trivia master." }, { role: "user", content: prompt }],
-      temperature: 0.7,
+      temperature: 1.3,
     });
 
     const triviaQuestion = response.choices[0]?.message?.content;

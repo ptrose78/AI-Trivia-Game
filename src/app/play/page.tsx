@@ -17,7 +17,7 @@ export default function TriviaGame() {
   const [questionCount, setQuestionCount] = useState(0);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const totalQuestions = 3;
+  const totalQuestions = 5;
   const [playedToday, setPlayedToday] = useState(false);
   
 
@@ -26,7 +26,7 @@ export default function TriviaGame() {
     const data = await res.json();
     setPlayedToday(data.playedToday);
     console.log("Played Today:", data.playedToday);
-    return true;
+    return data.playedToday;
   };
 
   const fetchTrivia = async () => {
@@ -80,7 +80,7 @@ export default function TriviaGame() {
         setFeedback(`🎉 Quiz Complete! Your Score: ${score}/${totalQuestions}`);
         setGameOver(true);
       }
-    }, 2000);
+    }, 1000);
   };
 
   const postScore = async () => {
@@ -127,7 +127,7 @@ export default function TriviaGame() {
           <p className="text-lg font-semibold">{question}</p>
           <ul className="mt-3">
             {choices.map((choice, index) => (
-              <button key={index} onClick={() => handleAnswer(index)} disabled={!!feedback}>
+              <button className="w-full text-left" key={index} onClick={() => handleAnswer(index)} disabled={!!feedback}>
                 <li className="py-1">{`${choice}`}</li>
               </button>
             ))}
